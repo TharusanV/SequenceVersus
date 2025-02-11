@@ -1,10 +1,18 @@
-import { useState } from 'react'
+import { HashRouter, Routes, Route } from "react-router-dom";
+
+import { Home, GameLobby } from "./components";
 
 function App() {
 
   return (
-    <>
-    </>
+    <HashRouter>
+      <div>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/gameLobby" element={<GameLobby />} />
+        </Routes>
+      </div>
+    </HashRouter>
   )
 }
 

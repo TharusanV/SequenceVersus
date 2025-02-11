@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { Peer } from "peerjs";
+import React, { useState, useEffect } from 'react';
+import Peer from 'peerjs';
 
 const Home = () => {
   const [peer, setPeer] = useState(null);
   const [peerId, setPeerId] = useState("");
+  
   const [connection, setConnection] = useState(null);
+  
   const [remoteId, setRemoteId] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [message, setMessage] = useState("");
+
+  const [allMessages, setAllMessages] = useState([]);
+  const [currentMessage, setCurrentMessage] = useState("");
 
   useEffect(() => {
     const newPeer = new Peer();
@@ -18,36 +21,66 @@ const Home = () => {
 
     newPeer.on("connection", (conn) => {
       setConnection(conn);
+      
       conn.on("data", (data) => {
-        setMessages((prev) => [...prev, { text: data, sender: "them" }]);
+        setAllMessages((prev) => [...prev, { text: data, sender: "them" }]);
+      });
+
+      conn.on("close", () => {
+        setAllMessages((prev) => [...prev, { text: "The other user has disconnected.", sender: "system" }]);
       });
     });
 
     setPeer(newPeer);
 
-    return () => newPeer.destroy();
+    // Cleanup peer when component is unmounted
+    return () => {
+      if (newPeer) {
+        newPeer.destroy();
+      }
+    };
   }, []);
 
   const connectToPeer = () => {
-    if (!peer || !remoteId) return;
+    if (!peer || !remoteId){
+      return;
+    }
+
     const conn = peer.connect(remoteId);
 
     conn.on("open", () => {
       setConnection(conn);
     });
-
-    conn.on("data", (data) => {
-      setMessages((prev) => [...prev, { text: data, sender: "them" }]);
-    });
   };
 
   const sendMessage = () => {
-    if (connection && message.trim()) {
-      connection.send(message);
-      setMessages((prev) => [...prev, { text: message, sender: "me" }]);
-      setMessage("");
+    if (connection) {
+
+      connection.send(currentMessage);
+      
+      setAllMessages((prev) => [...prev, { text: currentMessage, sender: "me" }]);
+      
+      setCurrentMessage("");
     }
   };
+
+  // Detect if the page is being refreshed or closed
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (connection) {
+        connection.close();
+      }    
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      if (connection) {
+        connection.close();
+      }
+    };
+  }, [connection]);
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
@@ -95,7 +128,7 @@ const Home = () => {
           marginBottom: "10px"
         }}
       >
-        {messages.map((msg, index) => (
+        {allMessages.map((msg, index) => (
           <div
             key={index}
             style={{
@@ -123,8 +156,8 @@ const Home = () => {
           <input
             type="text"
             placeholder="Type a message..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            value={currentMessage}
+            onChange={(e) => setCurrentMessage(e.target.value)}
             style={{
               flex: "1",
               padding: "8px",

@@ -8,8 +8,8 @@ function App() {
     <HashRouter>
       <div>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/gameLobby" element={<GameLobby />} />
+          {/*<Route path="/" element={<Home />} />*/}
+          <Route path="/" element={<GameLobby />} />
         </Routes>
       </div>
     </HashRouter>

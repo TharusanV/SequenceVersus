@@ -1,6 +1,6 @@
 import { HashRouter, Routes, Route } from "react-router-dom";
 
-import { Home, GameLobby } from "./components";
+import { Lobby } from "./components";
 
 function App() {
 
@@ -8,8 +8,8 @@ function App() {
     <HashRouter>
       <div>
         <Routes>
-          {/*<Route path="/" element={<Home />} />*/}
-          <Route path="/" element={<GameLobby />} />
+          <Route path="/" element={<Lobby />} />
+
         </Routes>
       </div>
     </HashRouter>

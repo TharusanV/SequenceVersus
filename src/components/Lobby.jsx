@@ -1,23 +1,27 @@
 import { useEffect, useState, useRef } from "react";
 import { Peer } from "peerjs";
 
-const GameLobby = () => {
+const Lobby = () => {
     const [self, setSelf] = useState(null);
     const [selfId, setSelfId] = useState("");
     const [connection, setConnection] = useState(null);
     const [friendId, setFriendId] = useState("");
+
     const [status, setStatus] = useState("Waiting for connection...");
-    const [messages, setMessages] = useState([]); // Stores chat messages
-    const [messageInput, setMessageInput] = useState(""); // Tracks input field
-    const connectionRef = useRef(null); // Track the latest connection
+    const connectionRef = useRef(null);
+
+    const [messages, setMessages] = useState([]); 
+    const [messageInput, setMessageInput] = useState(""); 
 
     useEffect(() => {
         const newSelfPeer = new Peer();
 
+        // When the page loads event to handle: PeerJS initializes and assigns a unique ID to the user.
         newSelfPeer.on("open", (id) => {
             setSelfId(id);
         });
 
+        // When the page loads event to handle: If another user connects to this peer, handle connection setup
         newSelfPeer.on("connection", (conn) => {
             setConnection(conn);
             connectionRef.current = conn;
@@ -28,6 +32,7 @@ const GameLobby = () => {
         setSelf(newSelfPeer);
 
         return () => {
+            //Component dismount event
             if (connectionRef.current) {
                 connectionRef.current.close();
             }
@@ -49,6 +54,7 @@ const GameLobby = () => {
             setConnection(null);
             connectionRef.current = null;
             setStatus("Friend disconnected. You may connect to someone else.");
+            setMessages([]);
             setFriendId("");
         });
     };
@@ -56,14 +62,16 @@ const GameLobby = () => {
     // Function to send a message
     const sendMessage = () => {
         if (connection && messageInput.trim()) {
-            connection.send(messageInput); // Send message via PeerJS
-            setMessages((prevMessages) => [...prevMessages, { sender: "You", text: messageInput }]); // Update UI
-            setMessageInput(""); // Clear input field
+            connection.send(messageInput); 
+            setMessages((prevMessages) => [...prevMessages, { sender: "You", text: messageInput }]); 
+            setMessageInput(""); 
         }
     };
 
     const connectToFriend = () => {
-        if (!self || connection) return;
+        if (!self || connection){
+            return;
+        }
 
         try {
             const conn = self.connect(friendId);
@@ -72,6 +80,11 @@ const GameLobby = () => {
             setStatus("Connecting...");
 
             setupConnectionEvents(conn);
+
+            // Update status when connection is opened
+            conn.on("open", () => {
+                setStatus("Connected to " + conn.peer);
+            });
         } catch (error) {
             setStatus("Failed to connect. Please check the ID.");
             console.error("Connection error:", error);
@@ -117,4 +130,4 @@ const GameLobby = () => {
     );
 };
 
-export default GameLobby;
+export default Lobby;

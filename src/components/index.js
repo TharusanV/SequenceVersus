@@ -1,7 +1,5 @@
-import Home from "./Home";
-import GameLobby from "./GameLobby";
+import Lobby from "./Lobby";
 
 export{
-  Home,
-  GameLobby,
+  Lobby,
 }
